@@ -31,6 +31,9 @@
 #define OUTSIDE_SLIDER_R	12
 
 #define DIAL_TRACK			26
+#define BUTTON_LOADTRACK_L	75
+#define BUTTON_LOADTRACK_R	52
+#define BUTTON_PAGE			72
 
 
 inline bool isTrebleDial(uint8_t control){
@@ -111,7 +114,7 @@ LEFT,	// 48
 LEFT,	// 49
 LEFT,	// 50
 LEFT,	// 51
-RIGHT,	// 52
+CENTER,	// 52
 RIGHT,	// 53
 RIGHT,	// 54
 RIGHT,	// 55
@@ -134,7 +137,7 @@ RIGHT,	// 71
 CENTER,	// 72
 LEFT,	// 73
 LEFT,	// 74
-LEFT,	// 75
+CENTER,	// 75
 RIGHT,	// 76
 RIGHT,	// 77
 RIGHT,	// 78

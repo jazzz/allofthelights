@@ -26,9 +26,12 @@ void Blinker::draw(uint32_t* buf ){
 //	Serial.println("G");
 	color = color & 0xFFFFFF; // Mask off top Byte
 
-	index = int(dx) % numPixels;
+	index = (int(dx)+ numPixels) % numPixels;
 	dx += dx_step;
+
+	// Serial.print(index,DEC );	Serial.print (" "); Serial.print(dx,DEC);  Serial.print(" ");  Serial.print(numPixels,DEC); 
 	buf[index] = color ;
+	// Serial.println ("  DONE");
 	tick++;
 	// Serial.print(" DRAW "); Serial.print(color,HEX);Serial.print(" "); Serial.print(index,DEC); Serial.print(" ");Serial.println(dx,DEC);
 	//index = index++ % numPixels;

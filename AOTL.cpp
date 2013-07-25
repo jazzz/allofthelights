@@ -15,19 +15,19 @@ randomSeed(4);
 
     Blinker* b;
     int8_t trackIndex ;
-    b = new Blinker();  
-    b->init(numPixels, 1);
-    addTrack(b);
+    
+    controllerTrackMappings[LEFT] = trackIndex;
 
     b = new Blinker();  
     b->init(numPixels, 2);
     addTrack(b);
-
+    // controllerTrackMappings[RIGHT] = trackIndex;
     b = new Blinker();  
     b->init(numPixels, 3);
-    addTrack(b);
+    trackIndex = addTrack(b);
 
     controllerTrackMappings[RIGHT] = trackIndex;
+
 
 
 }
@@ -41,6 +41,15 @@ int8_t LightTrackManager::addTrack(LightTrack* track){
     }
   }
   return -1;
+}
+
+int8_t LightTrackManager::addTrack(LightTrack* track, uint8_t trackId){
+  Serial.print("Add Tack"); Serial.print(trackId,DEC);
+  if( trackListing[trackId] == 1) { Serial.println("  FAIL ");return -1;}
+  trackListing[trackId] = 1;
+  tracks[trackId] = track;
+  Serial.println("GOOD");
+  return trackId;
 }
 
 // Set pixel color from 'packed' 32-bit RGB color:
@@ -64,7 +73,7 @@ uint32_t LightTrackManager::getTick() {
 }
 
 void LightTrackManager::onMidiNoteOn(uint8_t channel, uint8_t source, uint8_t velocity){
-
+    Serial.print("NoteOn: "); Serial.println(get_group(source), DEC); 
    switch  ( get_group(source) ) {
      case LEFT:
         if(controllerTrackMappings[LEFT] >= 0){
@@ -77,9 +86,7 @@ void LightTrackManager::onMidiNoteOn(uint8_t channel, uint8_t source, uint8_t ve
          }
          break;
      case CENTER:
-          if(controllerTrackMappings[CENTER] >= 0){
-           //globalOnMidiNoteOn(channel,source,velocity);
-         }
+           globalOnMidiChange(channel,source,velocity);
          break;
    }
   
@@ -87,6 +94,7 @@ void LightTrackManager::onMidiNoteOn(uint8_t channel, uint8_t source, uint8_t ve
 }
 
 void LightTrackManager::onMidiNoteOff(uint8_t channel, uint8_t source, uint8_t velocity){
+      Serial.print("NoteOff: "); Serial.println(get_group(source), DEC); 
    switch  ( get_group(source) ) {
      case LEFT:
         if(controllerTrackMappings[LEFT])
@@ -97,8 +105,7 @@ void LightTrackManager::onMidiNoteOff(uint8_t channel, uint8_t source, uint8_t v
            tracks[controllerTrackMappings[RIGHT]]->onMidiNoteOff(channel,source,velocity);
          break;
      case CENTER:
-          if(controllerTrackMappings[CENTER])
-           tracks[controllerTrackMappings[CENTER]]->onMidiNoteOff(channel,source,velocity);
+          globalOnMidiChange(channel,source,velocity);
          break;
    }
   
@@ -119,22 +126,51 @@ void LightTrackManager::onMidiControlChange(uint8_t channel, uint8_t source, uin
          }
          break;
      case CENTER:
-           globalOnMidiControlChange(channel,source,value);
+           globalOnMidiChange(channel,source,value);
          break;
    }
  }
 
 
-void LightTrackManager::globalOnMidiControlChange(int8_t channel, uint8_t source, uint8_t value){
+void LightTrackManager::globalOnMidiChange(int8_t channel, uint8_t source, uint8_t value){
 
   if( channel == 1){
+    Serial.print("GLOBAL Event "); Serial.println(source,DEC);
     if( source == DIAL_TRACK){
         int8_t delta = (value > 63) ?  value - 128 : value;
         trackSelectorValue += delta;
         trackSelectorValue = trackSelectorValue % NUM_TRACKS;
         Serial.print("TRack: "); Serial.println(trackSelectorValue,DEC);
+    }
+    
+    else if( source == BUTTON_LOADTRACK_L && value == BUTTON_DOWN){
+      if(trackListing[trackSelectorValue]){
+       controllerTrackMappings[LEFT] = trackSelectorValue;
+     }
+    }else if( source == BUTTON_LOADTRACK_R && value == BUTTON_DOWN){
+      Serial.println("LAOD R");
+        if(trackListing[trackSelectorValue]){
+            Serial.println("A");
+          controllerTrackMappings[RIGHT] = trackSelectorValue;
+        }
+    }
 
+    else if( source == BUTTON_PAGE && value == BUTTON_DOWN){
+        if(trackListing[trackSelectorValue]){
+          trackListing[trackSelectorValue] = 0;
+          delete tracks[trackSelectorValue];
+        }
+        spawnNewBlinker(trackSelectorValue);
     }
  }
+
+}
+
+bool LightTrackManager::spawnNewBlinker(uint8_t trackId){
+    Serial.println("SPAWN ENTER");
+    Blinker* b = new Blinker();  
+    b->init(numPixels, trackId);
+    Serial.println("SPAWN LEAVE");
+    return addTrack(b,trackId) == trackId;
 }
 

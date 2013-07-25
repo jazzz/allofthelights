@@ -53,7 +53,10 @@ class LightTrackManager {
     uint8_t trackListing[NUM_TRACKS];
 
     int8_t addTrack(LightTrack* track);
-    void globalOnMidiControlChange(int8_t channel, uint8_t source, uint8_t value);
+    int8_t addTrack(LightTrack* track, uint8_t trackId);
+    void globalOnMidiChange(int8_t channel, uint8_t source, uint8_t value);
+    bool spawnNewBlinker(uint8_t trackId);
+
 
     uint8_t trackSelectorValue;
 
