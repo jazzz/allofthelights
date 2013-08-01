@@ -1,10 +1,17 @@
 #include "AOTL.h"
 #include "NeumarkMacros.h"
-LightTrackManager::LightTrackManager(uint16_t pixels) : tick(0) {
-  numPixels = pixels;
-  trackSelectorValue =0;
+LightTrackManager::LightTrackManager(uint16_t pixels)  {
 
-randomSeed(4);
+
+  numPixels = pixels;
+  trackFactory = new TrackFactory(numPixels);
+
+
+  trackSelectorValue =0;
+  trackTypeSelectorValue = 0;
+  trackSelectorMode = 0;
+  tick = 0;
+
   for(uint8_t i=0; i < NUM_TRACKS;i++){
     trackListing[i] = 0;
   }
@@ -13,20 +20,31 @@ randomSeed(4);
   controllerTrackMappings[RIGHT] = -1;
 
 
-    Blinker* b;
-    int8_t trackIndex ;
+  
+  int8_t trackIndex ;
+
     
+    // controllerTrackMappings[LEFT] = trackIndex;
+
+  ColorFill* c = new ColorFill();  
+    c->init(numPixels);
+    trackIndex = addTrack(c);
     controllerTrackMappings[LEFT] = trackIndex;
 
-    b = new Blinker();  
-    b->init(numPixels, 2);
-    addTrack(b);
-    // controllerTrackMappings[RIGHT] = trackIndex;
-    b = new Blinker();  
-    b->init(numPixels, 3);
+    Bullet* b = new Bullet();  
+    b->init(numPixels,3);
     trackIndex = addTrack(b);
-
     controllerTrackMappings[RIGHT] = trackIndex;
+
+
+ 
+
+    // Serial.println();
+    // b = new Blinker();  
+    // b->init(numPixels, 3);
+    // trackIndex = addTrack(b);
+
+    // controllerTrackMappings[RIGHT] = trackIndex;
 
 
 
@@ -51,6 +69,21 @@ int8_t LightTrackManager::addTrack(LightTrack* track, uint8_t trackId){
   Serial.println("GOOD");
   return trackId;
 }
+
+// bool LightTrackManager::removeTrack(uint8_t trackId){
+//   Serial.print("remove Tack"); Serial.print(trackId,DEC);
+//   trackListing[trackId] = -1;
+//   delete tracks[trackId];
+//   tracks[trackId] = null;
+//   Serial.println("GOOD");
+
+//   if( controllerTrackMappings[RIGHT] == trackId){
+//     controllerTrackMappings[RIGHT] = -1
+//   }
+  
+//   return true;
+// }
+
 
 // Set pixel color from 'packed' 32-bit RGB color:
 void LightTrackManager::draw(uint32_t* buf){
@@ -138,9 +171,19 @@ void LightTrackManager::globalOnMidiChange(int8_t channel, uint8_t source, uint8
     Serial.print("GLOBAL Event "); Serial.println(source,DEC);
     if( source == DIAL_TRACK){
         int8_t delta = (value > 63) ?  value - 128 : value;
+
+      if( trackSelectorMode == 0) {
         trackSelectorValue += delta;
         trackSelectorValue = trackSelectorValue % NUM_TRACKS;
         Serial.print("TRack: "); Serial.println(trackSelectorValue,DEC);
+      }else {
+        trackTypeSelectorValue += delta;
+        trackTypeSelectorValue = trackTypeSelectorValue % NUM_TRACK_TYPES;
+        Serial.print("TRack:Type "); Serial.println(trackTypeSelectorValue,DEC);
+      }
+    }else if( source == DIAL_TRACK_PRESS && value == BUTTON_DOWN){
+      trackSelectorMode = 1 - trackSelectorMode;
+       Serial.print("TRackSelecMode"); Serial.println(trackSelectorMode,DEC);
     }
     
     else if( source == BUTTON_LOADTRACK_L && value == BUTTON_DOWN){
@@ -160,17 +203,17 @@ void LightTrackManager::globalOnMidiChange(int8_t channel, uint8_t source, uint8
           trackListing[trackSelectorValue] = 0;
           delete tracks[trackSelectorValue];
         }
-        spawnNewBlinker(trackSelectorValue);
+        spawnNewTrack(trackTypeSelectorValue, trackSelectorValue);
     }
+
+
  }
 
 }
 
-bool LightTrackManager::spawnNewBlinker(uint8_t trackId){
+uint8_t LightTrackManager::spawnNewTrack(uint8_t trackTypeId, uint8_t trackId){
     Serial.println("SPAWN ENTER");
-    Blinker* b = new Blinker();  
-    b->init(numPixels, trackId);
-    Serial.println("SPAWN LEAVE");
-    return addTrack(b,trackId) == trackId;
+    LightTrack* lt = trackFactory->createTrackFromId(trackTypeId);
+    return addTrack(lt,trackId);
 }
 

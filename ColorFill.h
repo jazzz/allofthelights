@@ -1,15 +1,15 @@
-#ifndef BLINKER_H
-#define BLINKER_H
+#ifndef COLOR_FILL_H
+#define COLOR_FILL_H
 
 #include <Arduino.h>
 #include "LightTrack.h"
 
-class Blinker : public LightTrack {
+class ColorFill : public LightTrack {
 
  public:
 
   // Constructor:
-  Blinker();
+  ColorFill();
   void init(uint16_t numPixels);
 
   void draw(uint32_t* buf);
@@ -32,9 +32,12 @@ class Blinker : public LightTrack {
  private:
     uint32_t tick;
     uint16_t numPixels;
+    int32_t index;
     uint32_t color;
-    uint16_t numBlinkers;
 
+    float jogScalingFactor; 
+	float dx ;								// BUFFER OVERFLOW
+	float dx_step;
 
 };
   

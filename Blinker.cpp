@@ -1,3 +1,5 @@
+
+//#include "AOTL_util.h"
 #include "Blinker.h"
 #include "NeumarkMacros.h"
 
@@ -7,34 +9,29 @@ Blinker::Blinker(){
 
 }
 
-void Blinker::init(uint16_t pixels, uint16_t startingIndex){
+void Blinker::init(uint16_t pixels){
 
 	//Serial.println("INIT BLINKER");
-	numPixels = pixels;
-	index = 0;
-	tick = 0;
-	color = random(2000);
-
-    jogScalingFactor = float(15)/127; 
-	dx = startingIndex % numPixels;								// BUFFER OVERFLOW
-	dx_step = 0;
+	// numPixels = pixels;
+   numBlinkers = 1;
+	 color = 0xFFFFFF;
 
 }
 
 void Blinker::draw(uint32_t* buf ){
 
 //	Serial.println("G");
-	color = color & 0xFFFFFF; // Mask off top Byte
 
-	index = (int(dx)+ numPixels) % numPixels;
-	dx += dx_step;
+	// color = color & 0xFFFFFF; // Mask off top Byte
+   uint16_t index = 0;
+   for(int i = numBlinkers; i >0; --i){
 
-	// Serial.print(index,DEC );	Serial.print (" "); Serial.print(dx,DEC);  Serial.print(" ");  Serial.print(numPixels,DEC); 
-	buf[index] = color ;
-	// Serial.println ("  DONE");
-	tick++;
-	// Serial.print(" DRAW "); Serial.print(color,HEX);Serial.print(" "); Serial.print(index,DEC); Serial.print(" ");Serial.println(dx,DEC);
-	//index = index++ % numPixels;
+    index = random(numPixels);
+    // Serial.println(index,DEC);
+	  buf[index] = color ;
+   }
+
+	// tick++;
 
 }
 
@@ -69,11 +66,11 @@ Serial.println("ENTER");
     		int8_t delta;
   			Serial.println("JOG");
   			delta =  (value > 63) ?  value - 128 : value;
-  			dx += delta * jogScalingFactor;
+  			//dx += delta * jogScalingFactor;
     	}
 
     	else if( isOutsideSlider(control) ) {
-    		dx_step = (value) ? (float(value) / 200) : 0;  // Scale between 1 and 0;
+    		//dx_step = (value) ? (float(value) / 200) : 0;  // Scale between 1 and 0;
     	}
 	}
     

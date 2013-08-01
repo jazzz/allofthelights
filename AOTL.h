@@ -7,7 +7,13 @@
 
 #include <Arduino.h>
 #include "LightTrack.h"
-#include "Blinker.h"
+
+#include "TrackTypeList.h"
+#include "TrackFactory.h"
+// #include "Bullet.h"
+// #include "Blinker.h"
+// #include "ColorFill.h"
+
 
 
 
@@ -23,6 +29,7 @@ class LightTrackManager {
 
   // Constructor:
   LightTrackManager(uint16_t numPixels);
+
 
   uint32_t getTick();
   void draw(uint32_t* buf);
@@ -55,10 +62,14 @@ class LightTrackManager {
     int8_t addTrack(LightTrack* track);
     int8_t addTrack(LightTrack* track, uint8_t trackId);
     void globalOnMidiChange(int8_t channel, uint8_t source, uint8_t value);
-    bool spawnNewBlinker(uint8_t trackId);
+    uint8_t spawnNewTrack(uint8_t trackTypeId, uint8_t trackIndex);
 
 
     uint8_t trackSelectorValue;
+    uint8_t trackTypeSelectorValue;
+    uint8_t trackSelectorMode;
+
+    TrackFactory* trackFactory;
 
 };
 
